@@ -171,7 +171,8 @@ src="${pb.files.getURL(item, item.image)}"" alt="${item.title || 'Item'}" loadin
             }
         }
         loadLatestItems();
-
+        //Yeah this is for Debug, Cuz nothing ever works as intended!!!!
+        console.log('Is authenticated?', pb.authStore.isValid, pb.authStore.model?.id);
         function logout() {
             pb.authStore.clear();
             location.href = 'index.html';
