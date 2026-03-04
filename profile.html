@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile | Kingman HS Lost & Found</title>
+
+    <link rel="stylesheet" href="css/nav.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/profile.css" />
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">Kingman High School</a>
+        <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li class="dropdown" id="profileDropdown" style="display:none;">
+                <a href="#" class="dropbtn active">Profile</a>
+                <div class="dropdown-content">
+                    <button onclick="logout()">Log Out</button>
+                </div>
+            </li>
+            <li id="loginNavItem"><a href="auth.html">Log In</a></li>
+        </ul>
+    </nav>
+
+    <header class="profile-hero">
+        <h1>My Profile</h1>
+    </header>
+
+    <main class="profile-layout">
+        <section class="left-column">
+            <div class="recent-lost">
+                <h2>Latest Lost Items</h2>
+                <p><a href="lost-items.html">View all lost items →</a></p>
+                <div id="itemsList" class="items-list"></div>
+            </div>
+        </section>
+
+        <aside class="right-column">
+            <div class="profile-card">
+                <div class="avatar-placeholder">
+                    <img src="images/kingman_logo.png" alt="Kingman Logo">
+                </div>
+                <h2 id="userName">Not logged in</h2>
+                <p id="userEmail">—</p>
+                <p id="userJoined">—</p>
+            </div>
+
+            <div class="post-form-card">
+                <h3>Report a Lost Item</h3>
+                <form id="lostItemForm">
+                    <div class="form-group">
+                        <label for="itemName">Item Name *</label>
+                        <input type="text" id="itemName" required placeholder="e.g., Blue Backpack">
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDescription">Description *</label>
+                        <textarea id="itemDescription" rows="5" required placeholder="Details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category:</label>
+                        <select id="category" name="category" required>
+                            <option value="">Select a category</option>
+                            <option value="backpack">Backpack</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="jewelry">Jewelry</option>
+                            <option value="keys">Keys</option>
+                            <option value="wallet">Wallet</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateLost">Date Lost:</label>
+                        <input type="date" id="dateLost" name="dateLost" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location Last Seen:</label>
+                        <input type="text" id="location" name="location" required
+                            placeholder="e.g., Hallway near cafeteria">
+                    </div>
+                    <div class="form-group">
+                        <label for="itemImage">Upload Photo (optional):</label>
+                        <input type="file" id="itemImage" name="itemImage" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number (optional):</label>
+                        <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567">
+                    </div>
+                    <br>
+                    <button type="submit" class="btn-action primary">Submit Report</button>
+                </form>
+            </div>
+            <br><br>
+            <div class="mobile-report-notice">
+                <a href="report.html">Report Lost Item →</a>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <!-- footer content -->
+    </footer>
+
+    <script src="https://unpkg.com/pocketbase@0.22.1/dist/pocketbase.umd.js"></script>
+    <script src="js/pb-config.js"></script>
+    <script src="js/nav.js"></script>
+    <script src="js/report-lost.js"></script>
+
+    <script>
+        const isLoggedIn = pb.authStore.isValid;
+        const user = pb.authStore.model;
+
+        // Update nav
+        document.getElementById('loginNavItem').style.display = isLoggedIn ? 'none' : 'block';
+        document.getElementById('profileDropdown').style.display = isLoggedIn ? 'block' : 'none';
+
+        // Fill profile info
+        if (isLoggedIn) {
+            document.getElementById('userName').textContent = user.name || 'User';
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userJoined').textContent =
+                'Member since: ' + new Date(user.created).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+        }
+
+        async function loadLatestItems() {
+            try {
+                const res = await pb.collection('lost_items').getList(1, 3, {
+                    sort: '-created'
+                });
+
+                const container = document.getElementById('itemsList');
+                container.innerHTML = '';
+
+                if (res.items.length === 0) {
+                    container.innerHTML = '<p>No lost items reported yet.</p>';
+                    return;
+                }
+
+                res.items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'item-preview';
+                    card.innerHTML = `
+                ${item.image ? `<img class="item-thumb" // in loadLatestItems()
+src="${pb.files.getURL(item, item.image)}"" alt="${item.title || 'Item'}" loading="lazy">` : ''}
+                <div class="item-content">
+                    <h4>${item.title || 'Unnamed Item'}</h4>
+                    <div class="status-badge ${item.status || 'pending'}">${item.status || 'Pending'}</div>
+                    
+                    <p><strong>Description:</strong> ${item.description || 'No details provided'}</p>
+                    <p><strong>Category:</strong> ${item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '—'}</p>
+                    <p><strong>Location:</strong> ${item.location || '—'}</p>
+                    <p><strong>Date Lost:</strong> ${item.dateLost ? new Date(item.dateLost).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
+                    <p><strong>Reported by:</strong> ${item.studentName || item.email || 'Anonymous'}</p>
+                    <p><small>Reported on ${new Date(item.created).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</small></p>
+                </div>
+            `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Load items error:', err);
+                container.innerHTML = '<p style="color:#c53030;">Could not load items. Try again later.</p>';
+            }
+        }
+        loadLatestItems();
+
+        function logout() {
+            pb.authStore.clear();
+            location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

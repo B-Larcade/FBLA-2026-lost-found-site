@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log In | Kingman HS Lost & Found</title>
+
+    <link rel="stylesheet" href="css/nav.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">Kingman High School</a>
+        <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="report.html">Report Lost</a></li>
+            <li><a href="found.html">Found Items</a></li>
+            <li><a href="claims.html">Claim & Inquiries</a></li>
+            <li><a href="profile.html">Profile</a></li>
+            <li><a href="auth.html" class="active">Log In</a></li>
+            <li><a href="admin.html">Admin</a></li>
+        </ul>
+    </nav>
+
+    <header class="auth-hero">
+        <h1>Log In</h1>
+        <p>Sign in with your email and password to access your reports and claims.</p>
+    </header>
+
+    <div class="auth-container">
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginName">Name (optional)</label>
+                <input type="text" id="loginName" placeholder="John Smith" autocomplete="name" />
+            </div>
+
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" required placeholder="yourname@knusd331.com" autocomplete="email" />
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required autocomplete="current-password" />
+            </div>
+
+            <button type="submit" class="btn-auth">Log In</button>
+
+            <div class="error-message" id="loginError"></div>
+
+            <div class="auth-note">
+                If you don't have an account yet, ask a teacher or admin to create one for you.
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <h1 id="footer_heading">CONTACT US</h1>
+        <p class="footer_text">Phone: 620-532-3134</p>
+        <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
+    </footer>
+
+    <script src="https://unpkg.com/pocketbase@0.22.1/dist/pocketbase.umd.js"></script>
+    <script src="js/pb-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/nav.js"></script>
+</body>
+
+</html>

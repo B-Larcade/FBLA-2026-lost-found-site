@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login - Kingman HS Lost & Found</title>
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">Kingman High School</a>
+        <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="report.html">Report a Lost Item</a></li>
+            <li><a href="found.html">Found Items</a></li>
+            <li><a href="claims.html">Claim & Inquiries</a></li>
+            <li><a href="login.html" class="active">Login</a></li>
+        </ul>
+    </nav>
+
+    <header>
+        <h1>Admin Login</h1>
+        <p>Authorized personnel only</p>
+    </header>
+
+    <main>
+        <section class="auth-section">
+            <div class="auth-container">
+                <div id="loginForm" class="auth-form">
+                    <h2>Admin Login</h2>
+                    <form id="signInForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email:</label>
+                            <input type="email" id="loginEmail" name="loginEmail" required placeholder="Email address">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">Password:</label>
+                            <input type="password" id="loginPassword" name="loginPassword" required
+                                placeholder="Enter password">
+                        </div>
+                        <br>
+                        <button type="submit">Login</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <h1 id="footer_heading" class="heading">CONTACT US</h1>
+        <p class="footer_text">Phone: 620-532-3134</p>
+        <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
+    </footer>
+
+    <script>
+        const validCredentials = {
+            email: atob('cm9obG1hbm5pY0BrbnVzZDMzMS5jb20='),
+            password: atob('MjMyMjg3MDBr')
+        };
+
+        document.getElementById('signInForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (email === validCredentials.email && password === validCredentials.password) {
+                alert('Login successful!');
+                // In a real application, you would set a session/token here
+                localStorage.setItem('adminLoggedIn', 'true');
+                window.location.href = 'admin.html';
+            } else {
+                alert('Invalid email or password. Access denied.');
+                this.reset();
+            }
+        });
+    </script>
+</body>
+
+</html>

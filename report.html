@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Report a Lost Item - Kingman HS Lost & Found</title>
+
+        <link rel="stylesheet" href="css/nav.css">
+        <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+        <!-- Navigation -->
+        <nav class="navbar">
+                <a href="index.html" class="logo">Kingman High School</a>
+                <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+
+                <ul class="nav-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="report.html" class="active">Report a Lost Item</a></li>
+                        <li><a href="found.html">Found Items</a></li>
+                        <li><a href="claims.html">Claim & Inquiries</a></li>
+                        <li><a href="admin.html">Administration</a></li>
+                </ul>
+        </nav>
+
+        <!-- Header -->
+        <header>
+                <h1>Report a Lost Item</h1>
+                <p>Help us reunite you with your lost belongings</p>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+                <section>
+                        <h2>Lost Item Report Form</h2>
+
+                        <form id="lostItemForm">
+
+                                <div class="form-group">
+                                        <label for="itemName">Item Name:</label>
+                                        <input type="text" id="itemName" name="itemName" required
+                                                placeholder="e.g., Blue Backpack">
+                                </div>
+
+                                <div class="form-group">
+                                        <label for="itemDescription">Description:</label>
+                                        <textarea id="itemDescription" name="itemDescription" rows="4" required
+                                                placeholder="Describe the item in detail"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                        <label for="category">Category:</label>
+                                        <select id="category" name="category" required>
+                                                <option value="">Select a category</option>
+                                                <option value="backpack">Backpack</option>
+                                                <option value="clothing">Clothing</option>
+                                                <option value="electronics">Electronics</option>
+                                                <option value="jewelry">Jewelry</option>
+                                                <option value="keys">Keys</option>
+                                                <option value="wallet">Wallet</option>
+                                                <option value="other">Other</option>
+                                        </select>
+                                </div>
+
+                                <div class="form-group">
+                                        <label for="dateLost">Date Lost:</label>
+                                        <input type="date" id="dateLost" name="dateLost" required>
+                                </div>
+
+                                <div class="form-group">
+                                        <label for="location">Location Last Seen:</label>
+                                        <input type="text" id="location" name="location" required
+                                                placeholder="e.g., Hallway near cafeteria">
+                                </div>
+
+                                <div class="form-group">
+                                        <label for="itemImage">Upload Photo:</label>
+                                        <input type="file" id="itemImage" name="itemImage" accept="image/*">
+                                </div>
+
+                                <div class="form-group">
+                                        <label for="phone">Phone Number (optional):</label>
+                                        <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567">
+                                </div>
+
+                                <br>
+
+                                <button type="submit">Submit Report</button>
+                                <button type="reset" class="btn-secondary">Clear Form</button>
+
+                        </form>
+                </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+                <h1 id="footer_heading" class="heading">CONTACT US</h1>
+                <p class="footer_text">Phone: 620-532-3134</p>
+                <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
+        </footer>
+
+        <!-- PocketBase Submission Script -->
+        <script src="https://unpkg.com/pocketbase@0.22.1/dist/pocketbase.umd.js"></script>
+        <script src="js/report.js"></script>
+        <script src="js/nav.js"></script>
+        <script src="js/pb-config.js"></script>
+
+</body>
+
+</html>
