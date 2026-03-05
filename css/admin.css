@@ -1,0 +1,253 @@
+/* css/admin.css - Dark Kingman HS Theme (Red/Black/White) */
+
+:root {
+    --bg-primary: #0d0d0d;
+    --bg-secondary: #1a1a1a;
+    --bg-card: #222;
+    --text-primary: #f0f0f0;
+    --text-secondary: #b0b0b0;
+    --kingman-red: #c8102e;
+    /* Scarlet red from school colors */
+    --kingman-black: #000000;
+    --kingman-white: #ffffff;
+    --accent: var(--kingman-red);
+    --accent-hover: #e63946;
+    --danger: #ff4d4d;
+    --success: #00cc66;
+    --border: #333;
+    --shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: linear-gradient(to right, var(--kingman-black), #111);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+    border-bottom: 3px solid var(--kingman-red);
+}
+
+header h1 {
+    color: var(--kingman-red);
+    font-size: 2.2rem;
+}
+
+main {
+    flex: 1;
+    display: flex;
+}
+
+/* Hamburger (left side, red bg) */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 200;
+    background: var(--kingman-red);
+    color: var(--kingman-white);
+    border: none;
+    border-radius: 6px;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(200, 16, 46, 0.4);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: var(--bg-secondary);
+    border-right: 2px solid var(--kingman-red);
+    padding: 5rem 0 2rem 0;
+    /* space for hamburger on mobile */
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    position: fixed;
+    height: 100%;
+    z-index: 100;
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar a {
+    display: block;
+    padding: 1.1rem 1.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 5px solid transparent;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #2a2a2a;
+    color: var(--kingman-white);
+    border-left-color: var(--kingman-red);
+}
+
+/* Content */
+.content-area {
+    margin-left: 260px;
+    padding: 2rem;
+    width: 100%;
+    transition: margin-left 0.3s ease;
+}
+
+.section {
+    display: none;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.8rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border: 1px solid #333;
+}
+
+.section.active {
+    display: block;
+}
+
+/* Cards */
+.item-card {
+    background: #282828;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 1.4rem;
+    margin: 1.2rem 0;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+}
+
+.item-card h4 {
+    color: var(--kingman-red);
+    margin-bottom: 0.6rem;
+}
+
+.item-card .full-desc {
+    white-space: pre-wrap;
+}
+
+.item-card .short-desc {
+    display: none;
+}
+
+.item-card button {
+    padding: 0.7rem 1.3rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 0.6rem;
+    transition: 0.2s;
+}
+
+.accept-btn {
+    background: var(--success);
+    color: white;
+}
+
+.reject-btn,
+.delete-btn {
+    background: var(--danger);
+    color: white;
+}
+
+.delete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    max-width: 600px;
+}
+
+input,
+select,
+button[type="submit"] {
+    padding: 1rem;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background: #333;
+    color: var(--text-primary);
+}
+
+button[type="submit"] {
+    background: var(--kingman-red);
+    color: white;
+    border: none;
+}
+
+/* Mobile */
+@media (max-width: 992px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        width: 80%;
+        max-width: 300px;
+    }
+
+    .sidebar.visible {
+        transform: translateX(0);
+    }
+
+    .content-area {
+        margin-left: 0;
+        padding: 1.2rem;
+        text-align: center;
+        /* center align everything */
+    }
+
+    .section {
+        padding: 1.2rem;
+    }
+
+    .item-card {
+        text-align: left;
+        /* keep card text left but overall page centered */
+        margin: 1rem auto;
+        max-width: 100%;
+    }
+
+    /* Reports mobile: shorten description */
+    .item-card .full-desc {
+        display: none;
+    }
+
+    .item-card .short-desc {
+        display: block;
+    }
+
+    .item-card .short-desc::after {
+        content: " ... (full details on desktop)";
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    form {
+        max-width: 100%;
+    }
+}

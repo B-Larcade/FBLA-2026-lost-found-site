@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel | Kingman HS Lost & Found</title>
+    <link rel="stylesheet" href="css/nav.css" />
+    <link rel="stylesheet" href="css/admin.css" />
+</head>
+
+<body>
+
+    <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+
+    <header>
+        <h1>Admin Panel</h1>
+        <p>Manage reports, users, and claims • Logged in as Admin</p>
+    </header>
+
+    <nav class="sidebar">
+        <ul>
+            <li><a href="#" class="active" data-section="pending">Pending Reports</a></li>
+            <li><a href="#" data-section="users">Manage Users</a></li>
+            <li><a href="#" data-section="teachers">Teachers</a></li>
+            <li><a href="#" data-section="students">Students</a></li>
+            <li><a href="#" data-section="claims">Review Claims</a></li>
+            <li><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="content-area">
+        <section id="pending" class="section active">
+            <h2>Pending Lost Item Reports</h2>
+            <div id="pendingItems"></div>
+        </section>
+
+        <section id="users" class="section">
+            <h2>Manage Users - Create New</h2>
+
+            <form id="createUserForm">
+                <input type="email" id="newEmail" placeholder="Email" required>
+                <input type="password" id="newPassword" placeholder="Password" required>
+                <input type="text" id="newName" placeholder="Full Name">
+                <select id="newRole" required>
+                    <option value="">Select Role</option>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit">Create User</button>
+            </form>
+
+            <h3>All Users Overview</h3>
+            <div id="usersList"></div>
+        </section>
+
+        <!-- Teachers -->
+        <section id="teachers" class="section">
+            <h2>Teachers</h2>
+            <div id="teachersList"></div>
+        </section>
+
+        <!-- Students -->
+        <section id="students" class="section">
+            <h2>Students</h2>
+            <div id="studentsList"></div>
+        </section>
+
+        <section id="claims" class="section">
+            <h2>Review Claims</h2>
+            <div id="claimsList">No claims yet or collection not set up.</div>
+        </section>
+    </main>
+
+    <script src="pb_public/pocketbase.umd.js"></script>
+    <script src="js/pb-config.js"></script>
+    <script src="js/nav.js"></script>
+
+    <script>
+        // Admin protection
+        if (!pb.authStore.isValid) {
+            location.href = 'login.html';
+        } else {
+            pb.collection('users').getOne(pb.authStore.model.id).then(u => {
+                if (u.roles !== 'admin') {
+                    alert('Admin access only.');
+                    location.href = 'profile.html';
+                }
+            }).catch(() => location.href = 'login.html');
+        }
+
+        // Sidebar switching
+        document.querySelectorAll('.sidebar a[data-section]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                link.classList.add('active');
+
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById(link.dataset.section).classList.add('active');
+
+                // Load data for the section
+                if (link.dataset.section === 'pending') loadPendingItems();
+                if (link.dataset.section === 'users') loadUsers();
+                if (link.dataset.section === 'teachers') loadTeachers();
+                if (link.dataset.section === 'students') loadStudents();
+            });
+        });
+
+        // Mobile menu
+        document.querySelector('.menu-toggle').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('visible');
+        });
+
+        // Close sidebar,mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 992) {
+                const sidebar = document.querySelector('.sidebar');
+                if (!sidebar.contains(e.target) && !e.target.classList.contains('menu-toggle')) {
+                    sidebar.classList.remove('visible');
+                }
+            }
+        });
+
+        // ── Function(s), just kiding there are definitly more than one
+
+        async function loadPendingItems() {
+            try {
+                const res = await pb.collection('lost_items').getList(1, 50, {
+                    filter: 'status = "pending"',
+                    sort: '-created'
+                });
+                const container = document.getElementById('pendingItems');
+                container.innerHTML = res.items.length === 0
+                    ? '<p>No pending reports.</p>'
+                    : res.items.map(item => `
+                    <div class="item-card">
+                        <h4>${item.title || 'No Title'}</h4>
+                        <p class="full-desc"><strong>Description:</strong> ${item.description || '—'}</p>
+                        <p class="short-desc"><strong>Description:</strong> ${item.description?.substring(0, 150) || '—'}</p>
+                        <p><strong>Category:</strong> ${item.category || '—'}</p>
+                        <p><strong>Location:</strong> ${item.location || '—'}</p>
+                        <p><strong>Date Lost:</strong> ${item.dateLost ? new Date(item.dateLost).toLocaleDateString() : '—'}</p>
+                        <p><strong>Reported by:</strong> ${item.studentName || item.email || 'Anonymous'}</p>
+                        <p><strong>Reported on:</strong> ${new Date(item.created).toLocaleString()}</p>
+                        ${item.image ? `<p><strong>Image:</strong> <a href="${pb.files.getURL(item, item.image)}" target="_blank">View</a></p>` : ''}
+                        <div>
+                            <button class="accept-btn" onclick="updateStatus('${item.id}', 'approved')">Accept</button>
+                            <button class="reject-btn" onclick="updateStatus('${item.id}', 'rejected')">Reject</button>
+                            <button class="delete-btn" onclick="deleteItem('${item.id}')">Delete Report</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        async function updateStatus(id, status) {
+            if (!confirm(`Set to ${status}?`)) return;
+            await pb.collection('lost_items').update(id, { status });
+            loadPendingItems();
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Delete permanently?')) return;
+            await pb.collection('lost_items').delete(id);
+            loadPendingItems();
+        }
+
+        async function loadUsers() {
+            const res = await pb.collection('users').getList(1, 100, { sort: '-created' });
+            document.getElementById('usersList').innerHTML = res.items.map(u => `
+                <div class="item-card">
+                    ${u.name || u.email} (${u.roles})
+                </div>
+            `).join('');
+        }
+
+        async function loadTeachers() {
+            try {
+                const res = await pb.collection('users').getList(1, 50, {
+                    filter: 'roles=\'teacher\''
+                });
+                document.getElementById('teachersList').innerHTML = res.items.length === 0
+                    ? '<p>No teachers found.</p>'
+                    : res.items.map(u => `
+                <div class="item-card">
+                    ${u.name || u.email} • ${u.email}
+                    <button class="delete-btn" onclick="deleteUser('${u.id}')">Delete Teacher</button>
+                </div>
+            `).join('');
+            } catch (err) {
+                console.error('Teachers load error:', err);
+                document.getElementById('teachersList').innerHTML = '<p style="color:#ff4d4d;">Error loading teachers: ' + (err.message || 'Check console') + '</p>';
+            }
+        }
+
+        async function loadStudents() {
+            try {
+                const res = await pb.collection('users').getList(1, 200, {
+                    filter: 'roles=\'student\''
+                });
+                document.getElementById('studentsList').innerHTML = res.items.length === 0
+                    ? '<p>No students found.</p>'
+                    : res.items.map(u => `
+                <div class="item-card">
+                    ${u.name || u.email} • ${u.email}
+                    <button class="delete-btn" onclick="deleteUser('${u.id}')">Delete Student</button>
+                </div>
+            `).join('');
+            } catch (err) {
+                console.error('Students load error:', err);
+                document.getElementById('studentsList').innerHTML = '<p style="color:#ff4d4d;">Error loading students: ' + (err.message || 'Check console') + '</p>';
+            }
+        }
+
+
+        // Create user
+        document.getElementById('createUserForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                email: document.getElementById('newEmail').value,
+                password: document.getElementById('newPassword').value,
+                passwordConfirm: document.getElementById('newPassword').value,
+                name: document.getElementById('newName').value,
+                roles: document.getElementById('newRole').value
+            };
+            try {
+                await pb.collection('users').create(data);
+                alert('User created!');
+                loadUsers();
+            } catch (err) {
+                alert('Error: ' + (err.data?.message || err.message));
+            }
+        });
+
+        async function deleteUser(id) {
+            if (!confirm('Delete this user permanently?')) return;
+            try {
+                await pb.collection('users').delete(id);
+                alert('User deleted');
+                // Refresh lists
+                loadUsers();
+                loadTeachers();
+                loadStudents();
+            } catch (err) {
+                alert('Cannot delete: ' + err.message);
+            }
+        }
+
+        function logout() {
+            pb.authStore.clear();
+            location.href = 'index.html';
+        }
+
+        // Initial load
+        loadPendingItems();
+    </script>
+</body>
+
+</html>

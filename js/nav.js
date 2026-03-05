@@ -37,18 +37,23 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdowns.forEach(d => d.classList.remove('open'));
         }
     });
-    
+
 
     // This is for when the users are sighned(I'm keeping this mispelling because it's funny) in.
 
     const loginNavItem = document.getElementById('loginNavItem');
     const profileDropdown = document.getElementById('profileDropdown');
-    
+
     const isLoggedIn = pb?.authStore?.isValid;
 
     //links visibility for, uh, Profile and Login
-    loginNavItem.style.display = isLoggedIn ? 'none' : 'block';
-    profileDropdown.style.display = isLoggedIn ? 'block' : 'none';
+    if (loginNavItem) {
+        loginNavItem.style.display = isLoggedIn ? 'none' : 'block';
+    }
+    if (profileDropdown) {
+        profileDropdown.style.display = isLoggedIn ? 'block' : 'none';
+    }
+
 
     const profileLink = profileDropdown.querySelector('.dropbtn');
     if (profileLink) {
