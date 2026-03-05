@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Kingman HS Lost & Found</title>
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/style.css">
@@ -16,18 +15,18 @@
     <button class="menu-toggle" aria-label="Toggle menu">☰</button>
     <ul class="nav-links">
       <li><a href="index.html" class="active">Home</a></li>
-
       <li id="report"><a href="report.html">Report Lost Item</a></li>
       <li id="lostItems"><a href="lost-items.html">Lost Items</a></li>
-
-      <li id="profileDropdown"><a href="profile.html">Profile</a></li>
-      <ii id="loginNavItem"><a href="auth.html">Login</a></ii>
+      <li id="profileDropdown" style="display:none;"><a href="profile.html">Profile</a></li>
+      <li id="loginNavItem"><a href="auth.html">Login</a></li>
+    </ul>
   </nav>
+
   <header>
     <h1>Lost and Found</h1>
     <p>Your one-stop solution for lost and found items at Kingman High School</p>
-    <br>
   </header>
+
   <section class="gallery-section">
     <div class="gallery-container">
       <img src="images/arial_hs.jpg" alt="School image 1" class="gallery-img small">
@@ -35,19 +34,19 @@
       <img src="images/front_hs.jpeg" alt="Kingman High School" class="gallery-img small">
     </div>
   </section>
+
   <footer id="footer-index-page">
     <h1 id="footer_heading" class="heading">CONTACT US</h1>
     <p class="footer_text">Phone: 620-532-3134</p>
     <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
     <p>&copy;
-      <script>document.write(new Date().getFullYear());</script> Kingman Counsoling Department, Braxtyn Larcade,
+      <script>document.write(new Date().getFullYear());</script> Kingman Counseling Department, Braxtyn Larcade,
       Nicholas Rohlman. All rights reserved.
     </p>
-    </div>
   </footer>
+
   <script src="pb_public/pocketbase.umd.js"></script>
   <script src="js/pb-config.js"></script>
-
   <script src="js/nav.js"></script>
 </body>
 
