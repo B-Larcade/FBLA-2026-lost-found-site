@@ -1,0 +1,31 @@
+ Accessed March 4 2026
+ ------------------------------
+"PocketBase – Open Source backend in 1 file." PocketBase Official Documentation, 
+PocketBase, 2025, pocketbase.io/docs/. Accessed 4 Mar. 2026.
+
+"PocketBase: The Ultimate Self-Hosted Backend in One File." Dev.to, 18 Nov. 2024, 
+dev.to/ndrean/pocketbase-the-ultimate-self-hosted-backend-in-one-file-4n2f. Accessed 4 Mar. 2026.
+
+"Ngrok – Secure introspectable tunnels to localhost." ngrok Documentation, ngrok, 2025,
+ ngrok.com/docs/. Accessed 4 Mar. 2026.
+
+"How to Use ngrok to Expose Your Local Server to the Internet." freeCodeCamp, 12 Feb. 2025,
+ www.freecodecamp.org/news/how-to-use-ngrok-to-expose-local-server/. Accessed 4 Mar. 2026.
+
+ Accessed March 5 2026
+ ------------------------------
+
+Ganatra, Harsh. "PocketBase: Build Full-Stack Apps with a Single Executable." Medium, 5 Jan. 2025, 
+medium.com/@harshganatra/pocketbase-build-full-stack-apps-with-a-single-executable-8f2c3d1a9e4b. Accessed 5 Mar. 2026.
+
+"PocketBase vs Firebase vs Supabase – Which Backend Should You Choose?" LogRocket Blog, 15 Dec. 2025, 
+blog.logrocket.com/pocketbase-vs-firebase-vs-supabase/. Accessed 5 Mar. 2026.
+
+"ngrok: The Fastest Way to Share Your Local Development Server." Twilio Blog, 9 Mar. 2025,
+ www.twilio.com/blog/ngrok-local-development-server. Accessed 5 Mar. 2026.
+
+"Manipulating the DOM with Vanilla JavaScript." DigitalOcean Community, 22 Oct. 2025, 
+www.digitalocean.com/community/tutorials/javascript-dom-manipulation. Accessed 5 Mar. 2026.
+
+"Advanced DOM Manipulation Techniques in Modern JavaScript." Smashing Magazine, 14 Jan. 2026, 
+www.smashingmagazine.com/2026/01/advanced-dom-manipulation-javascript/. Accessed 5 Mar. 2026.

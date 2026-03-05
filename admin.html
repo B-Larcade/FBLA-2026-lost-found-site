@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Panel | Kingman HS Lost & Found</title>
+
     <link rel="stylesheet" href="css/nav.css" />
     <link rel="stylesheet" href="css/admin.css" />
 </head>
@@ -20,27 +21,38 @@
 
     <nav class="sidebar">
         <ul>
-            <li><a href="#" class="active" data-section="pending">Pending Reports</a></li>
+            <li><a href="#" class="active" data-section="reports">Reports</a></li>
             <li><a href="#" data-section="users">Manage Users</a></li>
             <li><a href="#" data-section="teachers">Teachers</a></li>
             <li><a href="#" data-section="students">Students</a></li>
-            <li><a href="#" data-section="claims">Review Claims</a></li>
+            <li><a href="#" data-section="claims">Claims</a></li>
             <li><a href="#" onclick="logout()">Logout</a></li>
         </ul>
     </nav>
 
     <main class="content-area">
-        <section id="pending" class="section active">
-            <h2>Pending Lost Item Reports</h2>
-            <div id="pendingItems"></div>
+        <!-- Reports -->
+        <section id="reports" class="section active">
+            <h2>Reports</h2>
+
+            <div class="sub-tabs-container">
+                <div class="sub-tabs-slider">
+                    <button class="sub-tab active" data-sub="pending">Pending</button>
+                    <button class="sub-tab" data-sub="approved">Approved</button>
+                    <button class="sub-tab" data-sub="rejected">Rejected</button>
+                </div>
+            </div>
+
+            <div id="reportsGrid" class="grid-container"></div>
         </section>
 
+        <!-- Manage Users -->
         <section id="users" class="section">
-            <h2>Manage Users - Create New</h2>
+            <h2>Create New User</h2>
 
             <form id="createUserForm">
-                <input type="email" id="newEmail" placeholder="Email" required>
-                <input type="password" id="newPassword" placeholder="Password" required>
+                <input type="email" id="newEmail" placeholder="Email" required autocomplete="off">
+                <input type="password" id="newPassword" placeholder="Password" required autocomplete="new-password">
                 <input type="text" id="newName" placeholder="Full Name">
                 <select id="newRole" required>
                     <option value="">Select Role</option>
@@ -51,25 +63,35 @@
                 <button type="submit">Create User</button>
             </form>
 
-            <h3>All Users Overview</h3>
-            <div id="usersList"></div>
+            <h3>All Users</h3>
+            <div id="usersGrid" class="grid-container"></div>
         </section>
 
         <!-- Teachers -->
         <section id="teachers" class="section">
             <h2>Teachers</h2>
-            <div id="teachersList"></div>
+            <div id="teachersGrid" class="grid-container"></div>
         </section>
 
         <!-- Students -->
         <section id="students" class="section">
             <h2>Students</h2>
-            <div id="studentsList"></div>
+            <div id="studentsGrid" class="grid-container"></div>
         </section>
 
+        <!-- Claims -->
         <section id="claims" class="section">
-            <h2>Review Claims</h2>
-            <div id="claimsList">No claims yet or collection not set up.</div>
+            <h2>Claims</h2>
+
+            <div class="sub-tabs-container">
+                <div class="sub-tabs-slider">
+                    <button class="sub-tab active" data-sub="pending">Pending</button>
+                    <button class="sub-tab" data-sub="approved">Approved</button>
+                    <button class="sub-tab" data-sub="rejected">Rejected</button>
+                </div>
+            </div>
+
+            <div id="claimsGrid" class="grid-container"></div>
         </section>
     </main>
 
@@ -78,7 +100,6 @@
     <script src="js/nav.js"></script>
 
     <script>
-        // Admin protection
         if (!pb.authStore.isValid) {
             location.href = 'login.html';
         } else {
@@ -90,31 +111,11 @@
             }).catch(() => location.href = 'login.html');
         }
 
-        // Sidebar switching
-        document.querySelectorAll('.sidebar a[data-section]').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-                link.classList.add('active');
-
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                document.getElementById(link.dataset.section).classList.add('active');
-
-                // Load data for the section
-                if (link.dataset.section === 'pending') loadPendingItems();
-                if (link.dataset.section === 'users') loadUsers();
-                if (link.dataset.section === 'teachers') loadTeachers();
-                if (link.dataset.section === 'students') loadStudents();
-            });
-        });
-
-        // Mobile menu
         document.querySelector('.menu-toggle').addEventListener('click', () => {
             document.querySelector('.sidebar').classList.toggle('visible');
         });
 
-        // Close sidebar,mobile
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', e => {
             if (window.innerWidth <= 992) {
                 const sidebar = document.querySelector('.sidebar');
                 if (!sidebar.contains(e.target) && !e.target.classList.contains('menu-toggle')) {
@@ -123,129 +124,257 @@
             }
         });
 
-        // ── Function(s), just kiding there are definitly more than one
+        document.querySelectorAll('.sidebar a[data-section]').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                link.classList.add('active');
 
-        async function loadPendingItems() {
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById(link.dataset.section).classList.add('active');
+
+                const section = link.dataset.section;
+                if (section === 'reports') loadReports('pending');
+                if (section === 'users') loadUsers();
+                if (section === 'teachers') loadTeachers();
+                if (section === 'students') loadStudents();
+                if (section === 'claims') loadClaims('pending');
+            });
+        });
+
+        document.querySelectorAll('.sub-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const parentSection = btn.closest('.section').id;
+                const slider = btn.closest('.sub-tabs-slider');
+
+                slider.style.transition = 'transform 0.4s ease';
+                slider.style.transform = 'translateX(-10px)';
+                setTimeout(() => slider.style.transform = 'translateX(0)', 10);
+
+                document.querySelectorAll(`#${parentSection} .sub-tab`).forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const status = btn.dataset.sub;
+                if (parentSection === 'reports') loadReports(status);
+                if (parentSection === 'claims') loadClaims(status);
+            });
+        });
+
+        async function loadReports(status = 'pending') {
+            const container = document.getElementById('reportsGrid');
+            container.innerHTML = '<p>Loading...</p>';
+
             try {
-                const res = await pb.collection('lost_items').getList(1, 50, {
-                    filter: 'status = "pending"',
+                const filter = status === 'all' ? '' : `status = '${status}'`;
+                const res = await pb.collection('lost_items').getList(1, 200, {
+                    filter,
                     sort: '-created'
                 });
-                const container = document.getElementById('pendingItems');
+
                 container.innerHTML = res.items.length === 0
-                    ? '<p>No pending reports.</p>'
+                    ? `<p>No ${status} reports.</p>`
                     : res.items.map(item => `
                     <div class="item-card">
                         <h4>${item.title || 'No Title'}</h4>
-                        <p class="full-desc"><strong>Description:</strong> ${item.description || '—'}</p>
-                        <p class="short-desc"><strong>Description:</strong> ${item.description?.substring(0, 150) || '—'}</p>
+                        <p class="short-desc">${item.description?.substring(0, 120) || 'No description'}...</p>
                         <p><strong>Category:</strong> ${item.category || '—'}</p>
                         <p><strong>Location:</strong> ${item.location || '—'}</p>
-                        <p><strong>Date Lost:</strong> ${item.dateLost ? new Date(item.dateLost).toLocaleDateString() : '—'}</p>
+                        <p><strong>Date Lost:</strong> ${item.dateLost || '—'}</p>
+                        ${item.image ? `
+                                <p><strong>Image:</strong> <a href="${pb.files.getURL(item, item.image)}" target="_blank" class="image-link">View</a></p>
+                            ` : ''}
                         <p><strong>Reported by:</strong> ${item.studentName || item.email || 'Anonymous'}</p>
-                        <p><strong>Reported on:</strong> ${new Date(item.created).toLocaleString()}</p>
-                        ${item.image ? `<p><strong>Image:</strong> <a href="${pb.files.getURL(item, item.image)}" target="_blank">View</a></p>` : ''}
-                        <div>
-                            <button class="accept-btn" onclick="updateStatus('${item.id}', 'approved')">Accept</button>
-                            <button class="reject-btn" onclick="updateStatus('${item.id}', 'rejected')">Reject</button>
-                            <button class="delete-btn" onclick="deleteItem('${item.id}')">Delete Report</button>
+                        <div class="actions">
+                            ${status === 'pending' ? `
+                                <button class="accept-btn" onclick="updateReport('${item.id}', 'approved')">Approve</button>
+                                <button class="reject-btn" onclick="updateReport('${item.id}', 'rejected')">Reject</button>
+                            ` : ''}
+                            <button class="delete-btn" onclick="deleteReport('${item.id}')">Delete</button>
                         </div>
                     </div>
                 `).join('');
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                container.innerHTML = '<p style="color:#ff4d4d;">Error loading reports.</p>';
+                console.error(err);
+            }
         }
 
-        async function updateStatus(id, status) {
-            if (!confirm(`Set to ${status}?`)) return;
+        async function updateReport(id, status) {
+            if (!confirm(`Set report to ${status}?`)) return;
             await pb.collection('lost_items').update(id, { status });
-            loadPendingItems();
+            loadReports(document.querySelector('#reports .sub-tab.active').dataset.sub);
         }
 
-        async function deleteItem(id) {
+        async function deleteReport(id) {
             if (!confirm('Delete permanently?')) return;
             await pb.collection('lost_items').delete(id);
-            loadPendingItems();
+            loadReports(document.querySelector('#reports .sub-tab.active').dataset.sub);
         }
 
+        document.getElementById('createUserForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('newEmail').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const name = document.getElementById('newName').value.trim();
+            const roles = document.getElementById('newRole').value;
+
+            if (!email || !password || !roles) {
+                alert('Please fill all required fields.');
+                return;
+            }
+
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters.');
+                return;
+            }
+            if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+                alert('Password must contain uppercase, lowercase, and a number.');
+                return;
+            }
+
+            try {
+                const data = {
+                    email,
+                    password,
+                    passwordConfirm: password,
+                    name,
+                    roles
+                };
+
+                console.log('Creating user with:', data);
+
+                const created = await pb.collection('users').create(data);
+                alert('User created! ID: ' + created.id);
+                loadUsers();
+                e.target.reset();
+            } catch (err) {
+                console.error('Create error:', err);
+                let msg = 'Failed to create user.';
+
+                if (err.status === 400) {
+                    if (err.data?.data?.email) msg += ' ' + err.data.data.email.message;
+                    if (err.data?.data?.password) msg += ' ' + err.data.data.password.message;
+                    if (err.data?.data?.roles) msg += ' Role not allowed (must be student/teacher/admin).';
+                } else if (err.status === 403) {
+                    msg += ' Permission denied – check API Create rule on users collection.';
+                }
+
+                alert(msg + '\nCheck console for details.');
+            }
+        });
+
         async function loadUsers() {
-            const res = await pb.collection('users').getList(1, 100, { sort: '-created' });
-            document.getElementById('usersList').innerHTML = res.items.map(u => `
+            const container = document.getElementById('usersGrid');
+            container.innerHTML = '<p>Loading users...</p>';
+
+            try {
+                const res = await pb.collection('users').getList(1, 100, { sort: '-created' });
+                container.innerHTML = res.items.map(u => `
                 <div class="item-card">
-                    ${u.name || u.email} (${u.roles})
+                    <p><strong>${u.name || u.email}</strong> (${u.roles || 'No role'})</p>
+                    <p>${u.email}</p>
+                    <button class="delete-btn" onclick="deleteUser('${u.id}')">Delete User</button>
                 </div>
-            `).join('');
+            `).join('') || '<p>No users found.</p>';
+            } catch (err) {
+                container.innerHTML = '<p style="color:#ff4d4d;">Error loading users: ' + err.message + '</p>';
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Delete user?')) return;
+            try {
+                await pb.collection('users').delete(id);
+                alert('User deleted');
+                loadUsers();
+            } catch (err) {
+                alert('Delete failed: ' + (err.data?.message || err.message));
+            }
         }
 
         async function loadTeachers() {
+            const container = document.getElementById('teachersGrid');
+            container.innerHTML = '<p>Loading...</p>';
+
             try {
                 const res = await pb.collection('users').getList(1, 50, {
-                    filter: 'roles=\'teacher\''
+                    filter: `roles = 'teacher'`
                 });
-                document.getElementById('teachersList').innerHTML = res.items.length === 0
-                    ? '<p>No teachers found.</p>'
-                    : res.items.map(u => `
+                container.innerHTML = res.items.map(u => `
                 <div class="item-card">
                     ${u.name || u.email} • ${u.email}
-                    <button class="delete-btn" onclick="deleteUser('${u.id}')">Delete Teacher</button>
                 </div>
-            `).join('');
+            `).join('') || '<p>No teachers found.</p>';
             } catch (err) {
-                console.error('Teachers load error:', err);
-                document.getElementById('teachersList').innerHTML = '<p style="color:#ff4d4d;">Error loading teachers: ' + (err.message || 'Check console') + '</p>';
+                container.innerHTML = '<p style="color:#ff4d4d;">Error loading teachers.</p>';
             }
         }
 
         async function loadStudents() {
+            const container = document.getElementById('studentsGrid');
+            container.innerHTML = '<p>Loading...</p>';
+
             try {
                 const res = await pb.collection('users').getList(1, 200, {
-                    filter: 'roles=\'student\''
+                    filter: `roles = 'student'`
                 });
-                document.getElementById('studentsList').innerHTML = res.items.length === 0
-                    ? '<p>No students found.</p>'
-                    : res.items.map(u => `
+                container.innerHTML = res.items.map(u => `
                 <div class="item-card">
                     ${u.name || u.email} • ${u.email}
-                    <button class="delete-btn" onclick="deleteUser('${u.id}')">Delete Student</button>
                 </div>
-            `).join('');
+            `).join('') || '<p>No students found.</p>';
             } catch (err) {
-                console.error('Students load error:', err);
-                document.getElementById('studentsList').innerHTML = '<p style="color:#ff4d4d;">Error loading students: ' + (err.message || 'Check console') + '</p>';
+                container.innerHTML = '<p style="color:#ff4d4d;">Error loading students.</p>';
             }
         }
 
+        async function loadClaims(status = 'pending') {
+            const container = document.getElementById('claimsGrid');
+            container.innerHTML = '<p>Loading...</p>';
 
-        // Create user
-        document.getElementById('createUserForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                email: document.getElementById('newEmail').value,
-                password: document.getElementById('newPassword').value,
-                passwordConfirm: document.getElementById('newPassword').value,
-                name: document.getElementById('newName').value,
-                roles: document.getElementById('newRole').value
-            };
             try {
-                await pb.collection('users').create(data);
-                alert('User created!');
-                loadUsers();
-            } catch (err) {
-                alert('Error: ' + (err.data?.message || err.message));
-            }
-        });
+                const filter = status === 'all' ? '' : `status = '${status}'`;
+                const res = await pb.collection('claims').getList(1, 100, {
+                    filter,
+                    expand: 'item,claimant',
+                    sort: '-created'
+                });
 
-        async function deleteUser(id) {
-            if (!confirm('Delete this user permanently?')) return;
-            try {
-                await pb.collection('users').delete(id);
-                alert('User deleted');
-                // Refresh lists
-                loadUsers();
-                loadTeachers();
-                loadStudents();
+                container.innerHTML = res.items.length === 0
+                    ? `<p>No ${status} claims.</p>`
+                    : res.items.map(claim => `
+                    <div class="item-card">
+                        <h4>Claim for: ${claim.expand?.item?.title || 'Unknown'}</h4>
+                        <p><strong>Claimant:</strong> ${claim.expand?.claimant?.name || claim.expand?.claimant?.email || 'Unknown'}</p>
+                        <p><strong>Proof:</strong> ${claim.proof || 'None'}</p>
+                        <p><strong>Phone:</strong> ${claim.contactPhone || '—'}</p>
+                        <p><strong>Submitted:</strong> ${new Date(claim.created).toLocaleString()}</p>
+                        <div class="actions">
+                            ${status === 'pending' ? `
+                                <button class="accept-btn" onclick="updateClaim('${claim.id}', 'approved')">Approve</button>
+                                <button class="reject-btn" onclick="updateClaim('${claim.id}', 'rejected')">Reject</button>
+                            ` : ''}
+                            <button class="delete-btn" onclick="deleteClaim('${claim.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
             } catch (err) {
-                alert('Cannot delete: ' + err.message);
+                container.innerHTML = '<p style="color:#ff4d4d;">Error loading claims.</p>';
+                console.error(err);
             }
+        }
+
+        async function updateClaim(id, status) {
+            if (!confirm(`Set claim to ${status}?`)) return;
+            await pb.collection('claims').update(id, { status });
+            loadClaims(document.querySelector('#claims .sub-tab.active')?.dataset.sub || 'pending');
+        }
+
+        async function deleteClaim(id) {
+            if (!confirm('Delete permanently?')) return;
+            await pb.collection('claims').delete(id);
+            loadClaims(document.querySelector('#claims .sub-tab.active')?.dataset.sub || 'pending');
         }
 
         function logout() {
@@ -254,7 +383,7 @@
         }
 
         // Initial load
-        loadPendingItems();
+        loadReports('pending');
     </script>
 </body>
 

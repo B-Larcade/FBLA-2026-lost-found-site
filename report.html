@@ -19,7 +19,8 @@
 
                 <ul class="nav-links">
                         <li><a href="index.html">Home</a></li>
-                        <li><a href="report.html" class="active">Report a Lost Item</a></li>
+                        <li><a href="report.html" class="active">Report Lost Item</a></li>
+                        <li><a href="lost-items.html">Lost Items</a></li>
                         <li><a href="profile.html">Profile</a></li>
                 </ul>
         </nav>
@@ -101,11 +102,13 @@
         </footer>
 
         <!-- PocketBase Submission Script -->
-        <script src="https://unpkg.com/pocketbase@0.22.1/dist/pocketbase.umd.js"></script>
-        <script src="js/report.js"></script>
-        <script src="js/nav.js"></script>
+        <script src="pb_public/pocketbase.umd.js"></script>
         <script src="js/pb-config.js"></script>
+        <script src="js/nav.js"></script>
+        <script src="js/report-lost.js"></script>
         <script>
+                const isLoggedIn = pb.authStore.isValid;
+                const user = pb.authStore.model;
                 // Let's protect this page!!
                 function protectionLoop() {
                         if (!pb?.authStore?.isValid) {

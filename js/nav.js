@@ -1,52 +1,11 @@
-
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Mobile menu toggle (hamburger)
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
+    const isLoggedIn = pb?.authStore?.isValid ?? false;
 
-    if (menuToggle && navLinks) {
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-    }
-
-    // Dropdown toggle for mobile / click fallback
-    const dropdowns = document.querySelectorAll('.dropdown');
-
-    dropdowns.forEach(dropdown => {
-        const btn = dropdown.querySelector('.dropbtn');
-        if (!btn) return;
-
-        btn.addEventListener('click', e => {
-            if (window.innerWidth <= 992) {
-                e.preventDefault();
-                dropdown.classList.toggle('open');
-
-                // Close other dropdowns
-                dropdowns.forEach(other => {
-                    if (other !== dropdown) other.classList.remove('open');
-                });
-            }
-        });
-    });
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.dropdown')) {
-            dropdowns.forEach(d => d.classList.remove('open'));
-        }
-    });
-
-
-    // This is for when the users are sighned(I'm keeping this mispelling because it's funny) in.
+    console.log('Nav loaded - Logged in?', isLoggedIn);
 
     const loginNavItem = document.getElementById('loginNavItem');
     const profileDropdown = document.getElementById('profileDropdown');
 
-    const isLoggedIn = pb?.authStore?.isValid;
-
-    //links visibility for, uh, Profile and Login
     if (loginNavItem) {
         loginNavItem.style.display = isLoggedIn ? 'none' : 'block';
     }
@@ -54,9 +13,34 @@ document.addEventListener('DOMContentLoaded', () => {
         profileDropdown.style.display = isLoggedIn ? 'block' : 'none';
     }
 
+    const reportLink = document.getElementById('report');
+    const lostItemsLink = document.getElementById('lostItems');
 
-    const profileLink = profileDropdown.querySelector('.dropbtn');
-    if (profileLink) {
-        profileLink.textContent = 'Profile';
+    if (reportLink) {
+        reportLink.style.display = isLoggedIn ? 'block' : 'none';
     }
+    if (lostItemsLink) {
+        lostItemsLink.style.display = isLoggedIn ? 'block' : 'none';
+    }
+
+    const subTabs = document.querySelectorAll('.sub-tab');
+    if (subTabs.length > 0) {
+        console.log('Sub-tabs found on this page:', subTabs.length);
+        subTabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const parentSection = btn.closest('.section')?.id || '';
+                document.querySelectorAll(`#${parentSection} .sub-tab`)?.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                console.log('Sub-tab clicked:', btn.dataset.sub);
+            });
+        });
+    } else {
+        console.log('No sub-tabs on this page - skipping');
+    }
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+        }
+    });
 });

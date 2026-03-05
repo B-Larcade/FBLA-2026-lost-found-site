@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lost Items - Kingman HS Lost & Found</title>
+
+    <link rel="stylesheet" href="css/nav.css" />
+    <style>
+        :root {
+            --kingman-red: #dd2f28;
+            --kingman-dark-red: #68120f;
+            --bg-light: #f4f4f4;
+            --card-bg: white;
+            --text-dark: #333;
+            --text-muted: #666;
+            --border-light: #ddd;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--kingman-red) 0%, var(--kingman-dark-red) 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--kingman-dark-red);
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 12px;
+        }
+
+        header p {
+            font-size: 1.15rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .item-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .item-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 25px rgba(221, 47, 40, 0.18);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 220px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #ccc;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-content {
+            padding: 20px;
+        }
+
+        .item-category {
+            display: inline-block;
+            background: var(--kingman-red);
+            color: white;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .item-name {
+            color: var(--kingman-dark-red);
+            font-size: 1.35rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .item-description {
+            color: var(--text-muted);
+            font-size: 0.97rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .item-meta {
+            color: #888;
+            font-size: 0.92rem;
+            margin-bottom: 15px;
+        }
+
+        .claim-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--kingman-red);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .claim-btn:hover {
+            background: var(--kingman-dark-red);
+        }
+
+        .no-items {
+            text-align: center;
+            padding: 80px 20px;
+            color: #777;
+            font-size: 1.3rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            max-width: 520px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2.8rem;
+            color: var(--kingman-red);
+            cursor: pointer;
+        }
+
+        .modal h2 {
+            color: var(--kingman-dark-red);
+            margin-bottom: 1.4rem;
+        }
+
+        label {
+            display: block;
+            margin: 1.2rem 0 0.6rem;
+            font-weight: bold;
+            color: #444;
+        }
+
+        textarea,
+        input[type="tel"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            margin-top: 2rem;
+            padding: 14px;
+            background: var(--kingman-red);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background: var(--kingman-dark-red);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.2rem;
+            }
+
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .modal-content {
+                padding: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">Kingman High School</a>
+        <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="report.html">Report Lost Item</a></li>
+            <li><a href="lost-items.html" class="active">Lost Items</a></li>
+            <li id="loginNavItem"><a href="login.html">Login</a></li>
+            <li><a href="profile.html" class="dropbtn">Profile</a>
+            </li>
+        </ul>
+    </nav>
+
+    <header>
+        <h1>Lost Items</h1>
+        <p>These items have been accepted and are waiting to be claimed. Click any item to submit a claim if it belongs
+            to you.</p>
+    </header>
+
+    <div class="container">
+        <div id="acceptedItems" class="items-grid"></div>
+    </div>
+
+    <!-- Claim Modal -->
+    <div id="claimModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">×</span>
+            <h2>Claim This Item</h2>
+            <p id="claimItemTitle" style="font-size:1.35rem; margin:1.2rem 0; color:#444;"></p>
+
+            <form id="claimForm">
+                <input type="hidden" id="claimItemId">
+
+                <label for="claimProof">Proof / Description (optional)</label>
+                <textarea id="claimProof" rows="4"
+                    placeholder="Tell us why you believe this is yours (photos, location found, unique marks, etc.)"></textarea>
+
+                <label for="claimPhone">Your Phone Number (optional – for admin contact)</label>
+                <input type="tel" id="claimPhone" placeholder="(316) 555-1234">
+
+                <button type="submit">Submit Claim</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="pb_public/pocketbase.umd.js"></script>
+    <script src="js/pb-config.js"></script>
+    <script src="js/nav.js"></script>
+
+    <script>
+        if (!pb.authStore.isValid) {
+            localStorage.setItem('redirectAfterLogin', window.location.pathname);
+            alert('Please log in to view and claim lost items.');
+            location.href = 'login.html';
+        }
+        document.querySelectorAll('.sub-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const parentSection = btn.closest('.section').id;
+                document.querySelectorAll(`#${parentSection} .sub-tab`).forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const status = btn.dataset.sub;
+                if (parentSection === 'reports') loadReports(status);
+                if (parentSection === 'claims') loadClaims(status);
+            });
+        });
+
+        async function loadAcceptedItems() {
+            try {
+                const res = await pb.collection('lost_items').getList(1, 50, {
+                    filter: 'status = "approved"',
+                    sort: '-created'
+                });
+
+                const container = document.getElementById('acceptedItems');
+
+                if (res.items.length === 0) {
+                    container.innerHTML = '<div class="no-items">No accepted lost items are available at the moment.</div>';
+                    return;
+                }
+
+                container.innerHTML = res.items.map(item => `
+                    <div class="item-card" onclick="openClaimModal('${item.id}', '${(item.title || 'Item').replace(/'/g, "\\'")}')">
+                        ${item.image
+                        ? `<div class="item-image"><img src="${pb.files.getURL(item, item.image)}" alt="${item.title || 'Item'}"></div>`
+                        : `<div class="item-image">No photo</div>`
+                    }
+                        <div class="item-content">
+                            <div class="item-category">${item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'Other'}</div>
+                            <div class="item-name">${item.title || 'Unnamed Item'}</div>
+                            <div class="item-description">${item.description?.substring(0, 120) || 'No description provided'}...</div>
+                            <div class="item-meta">
+                                <strong>Location:</strong> ${item.location || '—'}<br>
+                                <strong>Date Lost:</strong> ${item.dateLost ? new Date(item.dateLost).toLocaleDateString('en-US') : '—'}<br>
+                                <strong>Reported by:</strong> ${item.studentName || item.email || 'Anonymous'}
+                            </div>
+                            <button class="claim-btn">Claim This Item</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                document.getElementById('acceptedItems').innerHTML =
+                    '<div class="no-items" style="color:#dd2f28;">Error loading items. Please try again later.</div>';
+            }
+        }
+
+        function openClaimModal(itemId, title) {
+            document.getElementById('claimItemId').value = itemId;
+            document.getElementById('claimItemTitle').textContent = title;
+            document.getElementById('claimModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('claimModal').style.display = 'none';
+            document.getElementById('claimForm').reset();
+        }
+
+        document.getElementById('claimForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const itemId = document.getElementById('claimItemId').value;
+            const proof = document.getElementById('claimProof').value.trim();
+            const phone = document.getElementById('claimPhone').value.trim();
+
+            try {
+                await pb.collection('claims').create({
+                    item: itemId,
+                    claimant: pb.authStore.model.id,
+                    proof,
+                    contactPhone: phone,
+                    status: 'pending'
+                });
+
+                alert('Claim submitted! We’ll let you know if it’s approved.');
+                closeModal();
+            } catch (err) {
+                alert('Error submitting claim: ' + (err.message || 'Try again'));
+                console.error(err);
+            }
+        });
+
+        document.getElementById('claimModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('claimModal')) closeModal();
+        });
+
+        loadAcceptedItems();
+
+        function logout() {
+            pb.authStore.clear();
+            location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

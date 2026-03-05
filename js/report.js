@@ -1,21 +1,18 @@
-// report-lost.js  – add guards around user and pb
-
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('lostItemForm');
     if (!form) return;
 
-    // Safety check – show message if PocketBase didn't load
     if (typeof pb === 'undefined') {
         console.error('PocketBase SDK not loaded – check script tags and pb-config.js');
         const msg = document.createElement('p');
         msg.style.color = 'red';
         msg.textContent = 'Error: Cannot connect to the database right now. Please refresh or contact support.';
         form.before(msg);
-        form.style.display = 'none'; // or keep visible but disable submit
+        form.style.display = 'none';
         return;
     }
 
-    const user = pb.authStore.model || null;  // safe even if not logged in
+    const user = pb.authStore.model || null; 
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -26,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
 
-        // Required fields
         formData.append('title', document.getElementById('itemName').value.trim());
         formData.append('description', document.getElementById('itemDescription').value.trim());
         formData.append('category', document.getElementById('category').value);
@@ -37,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('studentName', user.name?.trim() || '');
             formData.append('email', user.email || '');
         }
-        // Image
         const fileInput = document.getElementById('itemImage');
         if (fileInput?.files?.[0]) {
             formData.append('image', fileInput.files[0]);

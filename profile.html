@@ -19,9 +19,12 @@
 
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
+            <li><a href="report.html">Report Lost Item</a></li>
+            <li><a href="lost-items.html">Lost Items</a></li>
             <li class="dropdown" id="profileDropdown" style="display:none;">
-                <a href="profile.html" class="dropbtn">Profile</a> <!-- ← link to profile.html -->
+                <a href="profile.html" class="dropbtn active">Profile</a>
                 <div class="dropdown-content">
+                    <a href="/profile.html"><strong>Profile</strong></a>
                     <button onclick="logout()">Log Out</button>
                 </div>
             </li>
@@ -36,9 +39,24 @@
     <main class="profile-layout">
         <section class="left-column">
             <div class="recent-lost">
-                <h2>Latest Lost Items</h2>
-                <p><a href="lost-items.html">View all lost items →</a></p>
-                <div id="itemsList" class="items-list"></div>
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="reported">Your Reported Items</button>
+                    <button class="tab-btn" data-tab="claims">My Claims</button>
+                </div>
+
+                <!-- Reported Items Tab -->
+                <div id="reportedTab" class="tab-content active">
+                    <h2>Your Reported Items</h2>
+                    <p><a href="lost-items.html">View all lost items →</a></p>
+                    <div id="itemsList" class="items-list"></div>
+                </div>
+
+                <!-- My Claims Tab -->
+                <div id="claimsTab" class="tab-content">
+                    <h2>My Submitted Claims</h2>
+                    <div id="myClaimsList" class="claims-list"></div>
+                </div>
             </div>
         </section>
 
@@ -105,7 +123,9 @@
     </main>
 
     <footer>
-        <!-- footer content -->
+        <h1 id="footer_heading" class="heading">CONTACT US</h1>
+        <p class="footer_text">Phone: 620-532-3134</p>
+        <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
     </footer>
 
     <script src="pb_public/pocketbase.umd.js"></script>
@@ -117,11 +137,13 @@
         const isLoggedIn = pb.authStore.isValid;
         const user = pb.authStore.model;
 
-        // Update nav
-        document.getElementById('loginNavItem').style.display = isLoggedIn ? 'none' : 'block';
-        document.getElementById('profileDropdown').style.display = isLoggedIn ? 'block' : 'none';
+        if (document.getElementById('loginNavItem')) {
+            document.getElementById('loginNavItem').style.display = isLoggedIn ? 'none' : 'block';
+        }
+        if (document.getElementById('profileDropdown')) {
+            document.getElementById('profileDropdown').style.display = isLoggedIn ? 'block' : 'none';
+        }
 
-        // Fill profile info
         if (isLoggedIn) {
             document.getElementById('userName').textContent = user.name || 'User';
             document.getElementById('userEmail').textContent = user.email;
@@ -131,64 +153,111 @@
                 });
         }
 
-        async function loadLatestItems() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(btn.dataset.tab + 'Tab').classList.add('active');
+
+                if (btn.dataset.tab === 'reported') loadReportedItems();
+                if (btn.dataset.tab === 'claims') loadMyClaims();
+            });
+        });
+
+        // Load reported items (THE STUDENT SUBMISSION THINGY), This took for ever ):
+        async function loadReportedItems() {
+            const container = document.getElementById('itemsList');
+            container.innerHTML = '<p class="loading">Loading your reported items...</p>';
+
             try {
-                const res = await pb.collection('lost_items').getList(1, 3, {
+
+                const userId = pb.authStore.model?.id;
+                if (!userId) throw new Error('Not logged in');
+
+                const res = await pb.collection('lost_items').getList(1, 50, {
+                    filter: `reportedBy = '${userId}'`, 
                     sort: '-created'
                 });
 
-                const container = document.getElementById('itemsList');
-                container.innerHTML = '';
-
-                if (res.items.length === 0) {
-                    container.innerHTML = '<p>No lost items reported yet.</p>';
-                    return;
-                }
-
-                res.items.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'item-preview';
-                    card.innerHTML = `
-                ${item.image ? `<img class="item-thumb" // in loadLatestItems()
-src="${pb.files.getURL(item, item.image)}"" alt="${item.title || 'Item'}" loading="lazy">` : ''}
-                <div class="item-content">
-                    <h4>${item.title || 'Unnamed Item'}</h4>
-                    <div class="status-badge ${item.status || 'pending'}">${item.status || 'Pending'}</div>
-                    
-                    <p><strong>Description:</strong> ${item.description || 'No details provided'}</p>
-                    <p><strong>Category:</strong> ${item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '—'}</p>
-                    <p><strong>Location:</strong> ${item.location || '—'}</p>
-                    <p><strong>Date Lost:</strong> ${item.dateLost ? new Date(item.dateLost).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
-                    <p><strong>Reported by:</strong> ${item.studentName || item.email || 'Anonymous'}</p>
-                    <p><small>Reported on ${new Date(item.created).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</small></p>
+                container.innerHTML = res.items.length === 0
+                    ? '<p>You haven\'t reported any items yet.</p>'
+                    : res.items.map(item => `
+                <div class="item-preview">
+                    ${item.image ? `<img class="item-thumb" src="${pb.files.getURL(item, item.image)}" alt="${item.title || 'Item'}" loading="lazy">` : ''}
+                    <div class="item-content">
+                        <h4>${item.title || 'Unnamed Item'}</h4>
+                        <div class="status-badge ${item.status || 'pending'}">${(item.status || 'pending').toUpperCase()}</div>
+                        <p><strong>Description:</strong> ${item.description || 'No details provided'}</p>
+                        <p><strong>Category:</strong> ${item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '—'}</p>
+                        <p><strong>Location:</strong> ${item.location || '—'}</p>
+                        <p><strong>Date Lost:</strong> ${item.dateLost ? new Date(item.dateLost).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
+                        <p><strong>Reported by:</strong> ${item.studentName || item.email || 'Anonymous'}</p>
+                        <p><small>Reported on ${new Date(item.created).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</small></p>
+                    </div>
                 </div>
-            `;
-                    container.appendChild(card);
-                });
+            `).join('');
             } catch (err) {
-                console.error('Load items error:', err);
-                container.innerHTML = '<p style="color:#c53030;">Could not load items. Try again later.</p>';
+                console.error('Load reported items error:', err);
+                container.innerHTML = '<p style="color:#c53030;">Could not load your items. Try again later.</p>';
             }
         }
-        loadLatestItems();
-        //Yeah this is for Debug, Cuz nothing ever works as intended!!!!
+
+        async function loadMyClaims() {
+            const container = document.getElementById('myClaimsList');
+            container.innerHTML = '<p class="loading">Loading your claims...</p>';
+
+            try {
+                const userId = pb.authStore.model?.id;
+                if (!userId) throw new Error('Not logged in');
+
+                const res = await pb.collection('claims').getList(1, 50, {
+                    filter: `claimant = '${userId}'`,
+                    expand: 'item',
+                    sort: '-created'
+                });
+
+                container.innerHTML = res.items.length === 0
+                    ? '<p>You haven\'t submitted any claims yet.</p>'
+                    : res.items.map(claim => `
+                        <div class="claim-preview">
+                            <h4>Claim for: ${claim.expand?.item?.title || 'Item #' + claim.item}</h4>
+                            <div class="claim-status ${claim.status}">
+                                ${claim.status.toUpperCase()}
+                            </div>
+                            <p class="claim-proof"><strong>Proof:</strong> ${claim.proof || 'None provided'}</p>
+                            <p><strong>Phone:</strong> ${claim.contactPhone || '—'}</p>
+                            <p><strong>Submitted:</strong> ${new Date(claim.created).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            ${claim.expand?.item?.image
+                            ? `<img src="${pb.files.getURL(claim.expand.item, claim.expand.item.image)}" alt="Item image" style="max-width:140px; border-radius:8px; margin-top:12px;">`
+                            : ''}
+                        </div>
+                    `).join('');
+            } catch (err) {
+                console.error('Load my claims error:', err);
+                container.innerHTML = '<p style="color:#c53030;">Could not load your claims. Try again later.</p>';
+            }
+        }
+
+        // Initial load
+        loadReportedItems();
+
         console.log('Is authenticated?', pb.authStore.isValid, pb.authStore.model?.id);
+
         function logout() {
             pb.authStore.clear();
             location.href = 'index.html';
         }
-        // Let's protect this page!!
+
         function protectionLoop() {
             if (!pb?.authStore?.isValid) {
                 localStorage.setItem('redirectAfterLogin', window.location.pathname);
-
                 alert('Please log in to access this page.');
                 window.location.href = 'auth.html';
-                // I love setTimeout, I actually was genius for this!
-                setTimeout(protectionLoop, 1000)
+                setTimeout(protectionLoop, 1000);
             }
-
-        };
+        }
         protectionLoop();
     </script>
 </body>
