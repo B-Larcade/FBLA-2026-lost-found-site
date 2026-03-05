@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Login - Kingman HS Lost & Found</title>
     <link rel="stylesheet" href="css/nav.css">
     <link rel="stylesheet" href="css/style.css">
@@ -24,19 +23,20 @@
     </nav>
 
     <header>
-        <h1>Admin Login</h1>
-        <p>Authorized personnel only</p>
+        <h1>Login</h1>
+        <p>Sign in with your school email and password</p>
     </header>
 
     <main>
         <section class="auth-section">
             <div class="auth-container">
                 <div id="loginForm" class="auth-form">
-                    <h2>Admin Login</h2>
+                    <h2>Sign In</h2>
                     <form id="signInForm">
                         <div class="form-group">
                             <label for="loginEmail">Email:</label>
-                            <input type="email" id="loginEmail" name="loginEmail" required placeholder="Email address">
+                            <input type="email" id="loginEmail" name="loginEmail" required
+                                placeholder="yourname@knusd331.com">
                         </div>
 
                         <div class="form-group">
@@ -47,6 +47,7 @@
                         <br>
                         <button type="submit">Login</button>
                     </form>
+                    <p id="loginError" style="color: red; display: none; margin-top: 10px; text-align: center;"></p>
                 </div>
             </div>
         </section>
@@ -58,26 +59,51 @@
         <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
     </footer>
 
-    <script>
-        const validCredentials = {
-            email: atob('cm9obG1hbm5pY0BrbnVzZDMzMS5jb20='),
-            password: atob('MjMyMjg3MDBr')
-        };
+    <script src="https://unpkg.com/pocketbase@0.22.1/dist/pocketbase.umd.js"></script>
+    <script src="js/pb-config.js"></script>
 
-        document.getElementById('signInForm').addEventListener('submit', function (e) {
+    <script>
+        document.getElementById('signInForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const email = document.getElementById('loginEmail').value;
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
 
-            if (email === validCredentials.email && password === validCredentials.password) {
-                alert('Login successful!');
-                // In a real application, you would set a session/token here
-                localStorage.setItem('adminLoggedIn', 'true');
-                window.location.href = 'admin.html';
-            } else {
-                alert('Invalid email or password. Access denied.');
-                this.reset();
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+
+            try {
+                // Yeah use the user collection for the authentication
+                const authData = await pb.collection('users').authWithPassword(email, password);
+
+                const role = user.roles || 'student';
+
+                console.log('Logged in as:', email, 'Role:', role);
+
+                alert(`Welcome, ${user.name || 'User'}! (${role})`);
+
+                // Use the role and find the right place
+                if (role === 'admin') {
+                    window.location.href = 'admin.html';
+                } else {
+                    const redirect = localStorage.getItem('redirectAfterLogin') || 'profile.html';
+                    localStorage.removeItem('redirectAfterLogin');
+                    window.location.href = redirect;
+                }
+
+            } catch (err) {
+                console.error('Login error:', err);
+
+                let msg = 'Login failed. Please check your email and password.';
+                if (err.status === 400 || err.status === 401) {
+                    msg = 'Invalid email or password.';
+                } else if (err.status) {
+                    msg += ` (Error ${err.status})`;
+                }
+
+                errorEl.textContent = msg;
+                errorEl.style.display = 'block';
             }
         });
     </script>

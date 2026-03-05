@@ -20,7 +20,7 @@
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li class="dropdown" id="profileDropdown" style="display:none;">
-                <a href="#" class="dropbtn active">Profile</a>
+                <a href="profile.html" class="dropbtn">Profile</a> <!-- ← link to profile.html -->
                 <div class="dropdown-content">
                     <button onclick="logout()">Log Out</button>
                 </div>
@@ -177,6 +177,19 @@ src="${pb.files.getURL(item, item.image)}"" alt="${item.title || 'Item'}" loadin
             pb.authStore.clear();
             location.href = 'index.html';
         }
+        // Let's protect this page!!
+        function protectionLoop() {
+            if (!pb?.authStore?.isValid) {
+                localStorage.setItem('redirectAfterLogin', window.location.pathname);
+
+                alert('Please log in to access this page.');
+                window.location.href = 'auth.html';
+                // I love setTimeout, I actually was genius for this!
+                setTimeout(protectionLoop, 1000)
+            }
+
+        };
+        protectionLoop();
     </script>
 </body>
 
