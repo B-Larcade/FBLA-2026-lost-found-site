@@ -2,74 +2,117 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Log In | Kingman HS Lost & Found</title>
-
-    <link rel="stylesheet" href="css/nav.css" />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/auth.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Kingman HS Lost & Found</title>
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-
     <nav class="navbar">
         <a href="index.html" class="logo">Kingman High School</a>
         <button class="menu-toggle" aria-label="Toggle menu">☰</button>
-
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
-            <li><a href="report.html">Report Lost</a></li>
+            <li><a href="report.html">Report a Lost Item</a></li>
             <li><a href="found.html">Found Items</a></li>
             <li><a href="claims.html">Claim & Inquiries</a></li>
-            <li><a href="profile.html">Profile</a></li>
-            <li><a href="auth.html" class="active">Log In</a></li>
-            <li><a href="admin.html">Admin</a></li>
+            <li><a href="login.html" class="active">Login</a></li>
         </ul>
     </nav>
 
-    <header class="auth-hero">
-        <h1>Log In</h1>
-        <p>Sign in with your email and password to access your reports and claims.</p>
+    <header>
+        <h1>Login</h1>
+        <p>Sign in with your school email and password</p>
     </header>
 
-    <div class="auth-container">
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="loginName">Name (optional)</label>
-                <input type="text" id="loginName" placeholder="John Smith" autocomplete="name" />
+    <main>
+        <section class="auth-section">
+            <div class="auth-container">
+                <div id="loginForm" class="auth-form">
+                    <h2>Sign In</h2>
+                    <form id="signInForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email:</label>
+                            <input type="email" id="loginEmail" name="loginEmail" required
+                                placeholder="yourname@knusd331.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">Password:</label>
+                            <input type="password" id="loginPassword" name="loginPassword" required
+                                placeholder="Enter password">
+                        </div>
+                        <br>
+                        <button type="submit">Login</button>
+                    </form>
+                    <p id="loginError" style="color: red; display: none; margin-top: 10px; text-align: center;"></p>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="loginEmail">Email</label>
-                <input type="email" id="loginEmail" required placeholder="yourname@knusd331.com" autocomplete="email" />
-            </div>
-
-            <div class="form-group">
-                <label for="loginPassword">Password</label>
-                <input type="password" id="loginPassword" required autocomplete="current-password" />
-            </div>
-
-            <button type="submit" class="btn-auth">Log In</button>
-
-            <div class="error-message" id="loginError"></div>
-
-            <div class="auth-note">
-                If you don't have an account yet, ask a teacher or admin to create one for you.
-            </div>
-        </form>
-    </div>
+        </section>
+    </main>
 
     <footer>
-        <h1 id="footer_heading">CONTACT US</h1>
+        <h1 id="footer_heading" class="heading">CONTACT US</h1>
         <p class="footer_text">Phone: 620-532-3134</p>
         <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
     </footer>
 
     <script src="pb_public/pocketbase.umd.js"></script>
     <script src="js/pb-config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/nav.js"></script>
+
+    <script>
+        document.getElementById('signInForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+
+            try {
+                // Authenticate 
+                const authData = await pb.collection('users').authWithPassword(email, password);
+
+
+                const userRecord = authData.record;
+
+                // Get role
+                const role = userRecord.roles || 'student';
+
+                console.log('Logged in as:', email, 'Role:', role);
+
+                alert(`Welcome, ${userRecord.name || 'User'}! (${role})`);
+
+                // Redirect
+                if (role === 'admin') {
+                    window.location.href = 'admin.html';
+                } else {
+                    const redirect = localStorage.getItem('redirectAfterLogin') || 'profile.html';
+                    localStorage.removeItem('redirectAfterLogin');
+                    window.location.href = redirect;
+                }
+
+            } catch (err) {
+                console.error('Login error:', err);
+
+                let msg = 'Login failed. Please check your email and password.';
+                if (err.status === 400 || err.status === 401) {
+                    msg = 'Invalid email or password.';
+                } else if (err.status) {
+                    msg += ` (Error ${err.status})`;
+                } else if (err.message) {
+                    msg = err.message;
+                }
+
+                errorEl.textContent = msg;
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 
 </html>
