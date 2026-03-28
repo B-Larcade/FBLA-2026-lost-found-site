@@ -1,4 +1,4 @@
-Document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('lostItemForm');
     if (!form) {
         console.warn('Form #lostItemForm not found');
@@ -59,8 +59,8 @@ Document.addEventListener('DOMContentLoaded', () => {
             formData.append('status', 'pending');
 
             if (user?.id) {
-            formData.append('reportedBy', user.id);
-        }
+                formData.append('reportedBy', user.id);
+            }
 
             const response = await fetch(`${PB_URL}/api/collections/lost_items/records`, {
                 method: 'POST',
