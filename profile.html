@@ -179,7 +179,7 @@
                 if (!userId) throw new Error('Not logged in');
 
                 const res = await pb.collection('lost_items').getList(1, 50, {
-                    filter: `reportedBy = '${userId}'`,
+                    filter: `reportedBy = '${userId}'`, 
                     sort: '-created'
                 });
 
