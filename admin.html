@@ -98,84 +98,86 @@
     </main>
 
     <script src="pb_public/pocketbase.umd.js" defer></script>
-    <script src="js/pb-config.js" defer></script>
+    <script src="js/pb-config.js"></script>
     <script src="js/nav.js" defer></script>
 
     <script>
-        if (!pb.authStore.isValid) {
-            location.href = 'login.html';
-        } else {
-            pb.collection('users').getOne(pb.authStore.model.id).then(u => {
-                if (u.roles !== 'admin') {
-                    alert('Admin access only.');
-                    location.href = 'profile.html';
-                }
-            }).catch(() => location.href = 'login.html');
-        }
+        document.addEventListener('DOMContentLoaded', () => {
 
-        document.querySelector('.menu-toggle').addEventListener('click', () => {
-            document.querySelector('.sidebar').classList.toggle('visible');
-        });
-
-        document.addEventListener('click', e => {
-            if (window.innerWidth <= 992) {
-                const sidebar = document.querySelector('.sidebar');
-                if (!sidebar.contains(e.target) && !e.target.classList.contains('menu-toggle')) {
-                    sidebar.classList.remove('visible');
-                }
+            if (!pb.authStore.isValid) {
+                location.href = 'login.html';
+            } else {
+                pb.collection('users').getOne(pb.authStore.model.id).then(u => {
+                    if (u.roles !== 'admin') {
+                        alert('Admin access only.');
+                        location.href = 'profile.html';
+                    }
+                }).catch(() => location.href = 'login.html');
             }
-        });
 
-        document.querySelectorAll('.sidebar a[data-section]').forEach(link => {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-                link.classList.add('active');
-
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                document.getElementById(link.dataset.section).classList.add('active');
-
-                const section = link.dataset.section;
-                if (section === 'reports') loadReports('pending');
-                if (section === 'users') loadUsers();
-                if (section === 'teachers') loadTeachers();
-                if (section === 'students') loadStudents();
-                if (section === 'claims') loadClaims('pending');
+            document.querySelector('.menu-toggle').addEventListener('click', () => {
+                document.querySelector('.sidebar').classList.toggle('visible');
             });
-        });
 
-        document.querySelectorAll('.sub-tab').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const parentSection = btn.closest('.section').id;
-                const slider = btn.closest('.sub-tabs-slider');
-
-                slider.style.transition = 'transform 0.4s ease';
-                slider.style.transform = 'translateX(-10px)';
-                setTimeout(() => slider.style.transform = 'translateX(0)', 10);
-
-                document.querySelectorAll(`#${parentSection} .sub-tab`).forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                const status = btn.dataset.sub;
-                if (parentSection === 'reports') loadReports(status);
-                if (parentSection === 'claims') loadClaims(status);
+            document.addEventListener('click', e => {
+                if (window.innerWidth <= 992) {
+                    const sidebar = document.querySelector('.sidebar');
+                    if (!sidebar.contains(e.target) && !e.target.classList.contains('menu-toggle')) {
+                        sidebar.classList.remove('visible');
+                    }
+                }
             });
-        });
 
-        async function loadReports(status = 'pending') {
-            const container = document.getElementById('reportsGrid');
-            container.innerHTML = '<p>Loading...</p>';
+            document.querySelectorAll('.sidebar a[data-section]').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                    link.classList.add('active');
 
-            try {
-                const filter = status === 'all' ? '' : `status = '${status}'`;
-                const res = await pb.collection('lost_items').getList(1, 200, {
-                    filter,
-                    sort: '-created'
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById(link.dataset.section).classList.add('active');
+
+                    const section = link.dataset.section;
+                    if (section === 'reports') loadReports('pending');
+                    if (section === 'users') loadUsers();
+                    if (section === 'teachers') loadTeachers();
+                    if (section === 'students') loadStudents();
+                    if (section === 'claims') loadClaims('pending');
                 });
+            });
 
-                container.innerHTML = res.items.length === 0
-                    ? `<p>No ${status} reports.</p>`
-                    : res.items.map(item => `
+            document.querySelectorAll('.sub-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const parentSection = btn.closest('.section').id;
+                    const slider = btn.closest('.sub-tabs-slider');
+
+                    slider.style.transition = 'transform 0.4s ease';
+                    slider.style.transform = 'translateX(-10px)';
+                    setTimeout(() => slider.style.transform = 'translateX(0)', 10);
+
+                    document.querySelectorAll(`#${parentSection} .sub-tab`).forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const status = btn.dataset.sub;
+                    if (parentSection === 'reports') loadReports(status);
+                    if (parentSection === 'claims') loadClaims(status);
+                });
+            });
+
+            async function loadReports(status = 'pending') {
+                const container = document.getElementById('reportsGrid');
+                container.innerHTML = '<p>Loading...</p>';
+
+                try {
+                    const filter = status === 'all' ? '' : `status = '${status}'`;
+                    const res = await pb.collection('lost_items').getList(1, 200, {
+                        filter,
+                        sort: '-created'
+                    });
+
+                    container.innerHTML = res.items.length === 0
+                        ? `<p>No ${status} reports.</p>`
+                        : res.items.map(item => `
                     <div class="item-card">
                         <h4>${item.title || 'No Title'}</h4>
                         <p class="short-desc">${item.description?.substring(0, 120) || 'No description'}...</p>
@@ -195,157 +197,157 @@
                         </div>
                     </div>
                 `).join('');
-            } catch (err) {
-                container.innerHTML = '<p style="color:#ff4d4d;">Error loading reports.</p>';
-                console.error(err);
-            }
-        }
-
-        async function updateReport(id, status) {
-            if (!confirm(`Set report to ${status}?`)) return;
-            await pb.collection('lost_items').update(id, { status });
-            loadReports(document.querySelector('#reports .sub-tab.active').dataset.sub);
-        }
-
-        async function deleteReport(id) {
-            if (!confirm('Delete permanently?')) return;
-            await pb.collection('lost_items').delete(id);
-            loadReports(document.querySelector('#reports .sub-tab.active').dataset.sub);
-        }
-
-        document.getElementById('createUserForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById('newEmail').value.trim();
-            const password = document.getElementById('newPassword').value;
-            const name = document.getElementById('newName').value.trim();
-            const roles = document.getElementById('newRole').value;
-
-            if (!email || !password || !roles) {
-                alert('Please fill all required fields.');
-                return;
+                } catch (err) {
+                    container.innerHTML = '<p style="color:#ff4d4d;">Error loading reports.</p>';
+                    console.error(err);
+                }
             }
 
-            if (password.length < 8) {
-                alert('Password must be at least 8 characters.');
-                return;
-            }
-            if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
-                alert('Password must contain uppercase, lowercase, and a number.');
-                return;
+            async function updateReport(id, status) {
+                if (!confirm(`Set report to ${status}?`)) return;
+                await pb.collection('lost_items').update(id, { status });
+                loadReports(document.querySelector('#reports .sub-tab.active').dataset.sub);
             }
 
-            try {
-                const data = {
-                    email,
-                    password,
-                    passwordConfirm: password,
-                    name,
-                    roles
-                };
+            async function deleteReport(id) {
+                if (!confirm('Delete permanently?')) return;
+                await pb.collection('lost_items').delete(id);
+                loadReports(document.querySelector('#reports .sub-tab.active').dataset.sub);
+            }
 
-                console.log('Creating user with:', data);
+            document.getElementById('createUserForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
 
-                const created = await pb.collection('users').create(data);
-                alert('User created! ID: ' + created.id);
-                loadUsers();
-                e.target.reset();
-            } catch (err) {
-                console.error('Create error:', err);
-                let msg = 'Failed to create user.';
+                const email = document.getElementById('newEmail').value.trim();
+                const password = document.getElementById('newPassword').value;
+                const name = document.getElementById('newName').value.trim();
+                const roles = document.getElementById('newRole').value;
 
-                if (err.status === 400) {
-                    if (err.data?.data?.email) msg += ' ' + err.data.data.email.message;
-                    if (err.data?.data?.password) msg += ' ' + err.data.data.password.message;
-                    if (err.data?.data?.roles) msg += ' Role not allowed (must be student/teacher/admin).';
-                } else if (err.status === 403) {
-                    msg += ' Permission denied – check API Create rule on users collection.';
+                if (!email || !password || !roles) {
+                    alert('Please fill all required fields.');
+                    return;
                 }
 
-                alert(msg + '\nCheck console for details.');
-            }
-        });
+                if (password.length < 8) {
+                    alert('Password must be at least 8 characters.');
+                    return;
+                }
+                if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+                    alert('Password must contain uppercase, lowercase, and a number.');
+                    return;
+                }
 
-        async function loadUsers() {
-            const container = document.getElementById('usersGrid');
-            container.innerHTML = '<p>Loading users...</p>';
+                try {
+                    const data = {
+                        email,
+                        password,
+                        passwordConfirm: password,
+                        name,
+                        roles
+                    };
 
-            try {
-                const res = await pb.collection('users').getList(1, 100, { sort: '-created' });
-                container.innerHTML = res.items.map(u => `
+                    console.log('Creating user with:', data);
+
+                    const created = await pb.collection('users').create(data);
+                    alert('User created! ID: ' + created.id);
+                    loadUsers();
+                    e.target.reset();
+                } catch (err) {
+                    console.error('Create error:', err);
+                    let msg = 'Failed to create user.';
+
+                    if (err.status === 400) {
+                        if (err.data?.data?.email) msg += ' ' + err.data.data.email.message;
+                        if (err.data?.data?.password) msg += ' ' + err.data.data.password.message;
+                        if (err.data?.data?.roles) msg += ' Role not allowed (must be student/teacher/admin).';
+                    } else if (err.status === 403) {
+                        msg += ' Permission denied – check API Create rule on users collection.';
+                    }
+
+                    alert(msg + '\nCheck console for details.');
+                }
+            });
+
+            async function loadUsers() {
+                const container = document.getElementById('usersGrid');
+                container.innerHTML = '<p>Loading users...</p>';
+
+                try {
+                    const res = await pb.collection('users').getList(1, 100, { sort: '-created' });
+                    container.innerHTML = res.items.map(u => `
                 <div class="item-card">
                     <p><strong>${u.name || u.email}</strong> (${u.roles || 'No role'})</p>
                     <p>${u.email}</p>
                     <button class="delete-btn" onclick="deleteUser('${u.id}')">Delete User</button>
                 </div>
             `).join('') || '<p>No users found.</p>';
-            } catch (err) {
-                container.innerHTML = '<p style="color:#ff4d4d;">Error loading users: ' + err.message + '</p>';
+                } catch (err) {
+                    container.innerHTML = '<p style="color:#ff4d4d;">Error loading users: ' + err.message + '</p>';
+                }
             }
-        }
 
-        async function deleteUser(id) {
-            if (!confirm('Delete user?')) return;
-            try {
-                await pb.collection('users').delete(id);
-                alert('User deleted');
-                loadUsers();
-            } catch (err) {
-                alert('Delete failed: ' + (err.data?.message || err.message));
+            async function deleteUser(id) {
+                if (!confirm('Delete user?')) return;
+                try {
+                    await pb.collection('users').delete(id);
+                    alert('User deleted');
+                    loadUsers();
+                } catch (err) {
+                    alert('Delete failed: ' + (err.data?.message || err.message));
+                }
             }
-        }
 
-        async function loadTeachers() {
-            const container = document.getElementById('teachersGrid');
-            container.innerHTML = '<p>Loading...</p>';
+            async function loadTeachers() {
+                const container = document.getElementById('teachersGrid');
+                container.innerHTML = '<p>Loading...</p>';
 
-            try {
-                const res = await pb.collection('users').getList(1, 50, {
-                    filter: `roles = 'teacher'`
-                });
-                container.innerHTML = res.items.map(u => `
+                try {
+                    const res = await pb.collection('users').getList(1, 50, {
+                        filter: `roles = 'teacher'`
+                    });
+                    container.innerHTML = res.items.map(u => `
                 <div class="item-card">
                     ${u.name || u.email} • ${u.email}
                 </div>
             `).join('') || '<p>No teachers found.</p>';
-            } catch (err) {
-                container.innerHTML = '<p style="color:#ff4d4d;">Error loading teachers.</p>';
+                } catch (err) {
+                    container.innerHTML = '<p style="color:#ff4d4d;">Error loading teachers.</p>';
+                }
             }
-        }
 
-        async function loadStudents() {
-            const container = document.getElementById('studentsGrid');
-            container.innerHTML = '<p>Loading...</p>';
+            async function loadStudents() {
+                const container = document.getElementById('studentsGrid');
+                container.innerHTML = '<p>Loading...</p>';
 
-            try {
-                const res = await pb.collection('users').getList(1, 200, {
-                    filter: `roles = 'student'`
-                });
-                container.innerHTML = res.items.map(u => `
+                try {
+                    const res = await pb.collection('users').getList(1, 200, {
+                        filter: `roles = 'student'`
+                    });
+                    container.innerHTML = res.items.map(u => `
                 <div class="item-card">
                     ${u.name || u.email} • ${u.email}
                 </div>
             `).join('') || '<p>No students found.</p>';
-            } catch (err) {
-                container.innerHTML = '<p style="color:#ff4d4d;">Error loading students.</p>';
+                } catch (err) {
+                    container.innerHTML = '<p style="color:#ff4d4d;">Error loading students.</p>';
+                }
             }
-        }
 
-        async function loadClaims(status = 'pending') {
-            const container = document.getElementById('claimsGrid');
-            container.innerHTML = '<p>Loading...</p>';
+            async function loadClaims(status = 'pending') {
+                const container = document.getElementById('claimsGrid');
+                container.innerHTML = '<p>Loading...</p>';
 
-            try {
-                const filter = status === 'all' ? '' : `status = '${status}'`;
-                const res = await pb.collection('claims').getList(1, 100, {
-                    filter,
-                    expand: 'item,claimant',
-                    sort: '-created'
-                });
+                try {
+                    const filter = status === 'all' ? '' : `status = '${status}'`;
+                    const res = await pb.collection('claims').getList(1, 100, {
+                        filter,
+                        expand: 'item,claimant',
+                        sort: '-created'
+                    });
 
-                container.innerHTML = res.items.length === 0
-                    ? `<p>No ${status} claims.</p>`
-                    : res.items.map(claim => `
+                    container.innerHTML = res.items.length === 0
+                        ? `<p>No ${status} claims.</p>`
+                        : res.items.map(claim => `
                     <div class="item-card">
                         <h4>Claim for: ${claim.expand?.item?.title || 'Unknown'}</h4>
                         <p><strong>Claimant:</strong> ${claim.expand?.claimant?.name || claim.expand?.claimant?.email || 'Unknown'}</p>
@@ -361,31 +363,32 @@
                         </div>
                     </div>
                 `).join('');
-            } catch (err) {
-                container.innerHTML = '<p style="color:#ff4d4d;">Error loading claims.</p>';
-                console.error(err);
+                } catch (err) {
+                    container.innerHTML = '<p style="color:#ff4d4d;">Error loading claims.</p>';
+                    console.error(err);
+                }
             }
-        }
 
-        async function updateClaim(id, status) {
-            if (!confirm(`Set claim to ${status}?`)) return;
-            await pb.collection('claims').update(id, { status });
-            loadClaims(document.querySelector('#claims .sub-tab.active')?.dataset.sub || 'pending');
-        }
+            async function updateClaim(id, status) {
+                if (!confirm(`Set claim to ${status}?`)) return;
+                await pb.collection('claims').update(id, { status });
+                loadClaims(document.querySelector('#claims .sub-tab.active')?.dataset.sub || 'pending');
+            }
 
-        async function deleteClaim(id) {
-            if (!confirm('Delete permanently?')) return;
-            await pb.collection('claims').delete(id);
-            loadClaims(document.querySelector('#claims .sub-tab.active')?.dataset.sub || 'pending');
-        }
+            async function deleteClaim(id) {
+                if (!confirm('Delete permanently?')) return;
+                await pb.collection('claims').delete(id);
+                loadClaims(document.querySelector('#claims .sub-tab.active')?.dataset.sub || 'pending');
+            }
 
-        function logout() {
-            pb.authStore.clear();
-            location.href = 'index.html';
-        }
+            function logout() {
+                pb.authStore.clear();
+                location.href = 'index.html';
+            }
 
-        // Initial load
-        loadReports('pending');
+            // Initial load
+            loadReports('pending');
+        });
     </script>
 </body>
 
