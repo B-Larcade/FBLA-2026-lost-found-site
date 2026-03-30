@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="css/admin.css" />
 
     <link rel="icon" type="image/png" sizes="32x32" href="images/logo.png">
+
+    <script src="pb_public/pocketbase.umd.js"></script>
+    <script src="js/pb-config.js"></script>
 </head>
 
 <body>
@@ -97,8 +100,7 @@
         </section>
     </main>
 
-    <script src="pb_public/pocketbase.umd.js" defer></script>
-    <script src="js/pb-config.js" defer></script>
+
     <script src="js/nav.js" defer></script>
 
     <script>
@@ -238,6 +240,7 @@
             try {
                 const data = {
                     email,
+                    emailVisibility: true,
                     password,
                     passwordConfirm: password,
                     name,

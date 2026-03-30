@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="css/profile.css" />
 
     <link rel="icon" type="image/png" sizes="32x32" href="images/logo.png">
+
+    <script src="pb_public/pocketbase.umd.js"></script>
+    <script src="js/pb-config.js"></script>
 </head>
 
 <body>
@@ -130,12 +133,12 @@
         <p class="footer_text">260 W Kansas Ave, Kingman, KS 67068</p>
     </footer>
 
-    <script src="pb_public/pocketbase.umd.js" defer></script>
-    <script src="js/pb-config.js" defer></script>
+
     <script src="js/nav.js" defer></script>
     <script src="js/report-lost.js" defer></script>
 
     <script>
+
         const isLoggedIn = pb.authStore.isValid;
         const user = pb.authStore.model;
 
@@ -179,7 +182,7 @@
                 if (!userId) throw new Error('Not logged in');
 
                 const res = await pb.collection('lost_items').getList(1, 50, {
-                    filter: `reportedBy = '${userId}'`, 
+                    filter: `reportedBy = '${userId}'`,
                     sort: '-created'
                 });
 
